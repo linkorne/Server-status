@@ -16,7 +16,7 @@ jobs:
     steps:
 
       - name: Télécharger le projet
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Vérifier le serveur Minecraft
         env:
