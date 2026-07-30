@@ -1,0 +1,41 @@
+name: Minecraft Server Status
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Télécharger le projet
+        uses: actions/checkout@v4
+
+      - name: Vérifier le serveur Minecraft
+        env:
+          MINECRAFT_SERVER: ${{ secrets.MINECRAFT_SERVER }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+        run: |
+          python check_server.py
+
+      - name: Sauvegarder le nouvel état
+        run: |
+          git config user.name "Minecraft Status Bot"
+          git config user.email "minecraft-status-bot@users.noreply.github.com"
+
+          git add status.json
+
+          if git diff --cached --quiet; then
+            echo "Aucun changement."
+          else
+            git commit -m "Update Minecraft server status"
+            git push
+          fi
