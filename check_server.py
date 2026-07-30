@@ -1,6 +1,5 @@
 import os
 import json
-import socket
 import urllib.request
 import urllib.error
 
@@ -12,26 +11,23 @@ STATUS_FILE = "status.json"
 
 
 def get_server_status():
-    """
-    Vérifie directement si le serveur Minecraft est joignable.
-    """
+
+    # API spéciale Minecraft Bedrock
+    url = f"https://api.mcsrvstat.us/bedrock/3/{SERVER}"
+
+    request = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "MinecraftDiscordStatusBot/1.0"
+        }
+    )
 
     try:
-        # Récupération de l'adresse IP et du port via DNS SRV
-        srv_query = f"_minecraft._tcp.{SERVER}"
-
-        # On utilise l'API pour obtenir les informations DNS du serveur
-        url = f"https://api.mcsrvstat.us/3/{SERVER}"
-
-        request = urllib.request.Request(
-            url,
-            headers={
-                "User-Agent": "MinecraftDiscordStatusBot/1.0"
-            }
-        )
 
         with urllib.request.urlopen(request, timeout=20) as response:
-            data = json.loads(response.read().decode("utf-8"))
+            data = json.loads(
+                response.read().decode("utf-8")
+            )
 
         online = data.get("online", False)
 
@@ -44,7 +40,8 @@ def get_server_status():
         }
 
     except Exception as error:
-        print("Erreur :", error)
+
+        print("Erreur API :", error)
 
         return {
             "online": False,
@@ -75,9 +72,7 @@ def save_status(online):
     with open(STATUS_FILE, "w") as file:
 
         json.dump(
-            {
-                "online": online
-            },
+            {"online": online},
             file
         )
 
@@ -108,14 +103,14 @@ def send_discord_message(embed):
         with urllib.request.urlopen(request, timeout=20) as response:
 
             print(
-                "Message Discord envoyé :",
+                "✅ Message Discord envoyé :",
                 response.status
             )
 
     except urllib.error.HTTPError as error:
 
         print(
-            "Erreur Discord :",
+            "❌ Erreur Discord :",
             error.code
         )
 
@@ -142,48 +137,39 @@ def main():
     print("État précédent :", previous)
     print("--------------------------------")
 
+    # Premier lancement
     if previous is None:
 
-        print(
-            "Premier lancement : "
-            "état enregistré."
-        )
+        print("Premier lancement : état enregistré.")
 
         save_status(online)
 
         return
 
     # OFFLINE -> ONLINE
-
     if online and previous is False:
 
         embed = {
-
             "title": "🟢 Serveur Minecraft ouvert !",
-
             "description": (
-                "Le serveur Minecraft est maintenant disponible !\n\n"
+                "Le serveur Minecraft Bedrock est maintenant disponible !\n\n"
                 f"🎮 **Adresse :** `{SERVER}`\n"
                 f"👥 **Joueurs :** "
                 f"`{current['players']}/{current['max_players']}`"
             ),
-
             "color": 5763719
         }
 
         send_discord_message(embed)
 
     # ONLINE -> OFFLINE
-
     elif not online and previous is True:
 
         embed = {
-
             "title": "🔴 Serveur Minecraft fermé",
-
-            "description":
-                "Le serveur Minecraft vient de passer hors ligne.",
-
+            "description": (
+                "Le serveur Minecraft Bedrock vient de passer hors ligne."
+            ),
             "color": 15548997
         }
 
@@ -193,5 +179,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()
