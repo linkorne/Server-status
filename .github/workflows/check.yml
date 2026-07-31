@@ -24,6 +24,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Synchroniser avec la dernière version
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
       - name: Vérifier le serveur Minecraft
         env:
           MINECRAFT_SERVER: ${{ secrets.MINECRAFT_SERVER }}
@@ -31,11 +36,6 @@ jobs:
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
         run: |
           python check_server.py
-
-      - name: Synchroniser avec GitHub
-        run: |
-          git fetch origin main
-          git rebase origin/main
 
       - name: Sauvegarder le nouvel état
         run: |
